@@ -9,10 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
     $role = $_POST['role'];
-    // Allow school_id to be NULL if "No School" is selected
     $school_id = ($_POST['school_id'] === '') ? NULL : intval($_POST['school_id']);  
 
-    // Validation checks
     if (empty($name) || empty($email) || empty($password) || empty($confirm_password) || empty($role)) {
         $error_message = "All fields except School are required!";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -24,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!in_array($role, ['teacher', 'student', 'principal', 'admin'])) {
         $error_message = "Invalid role selected.";
     } elseif ($role === 'principal' && $school_id !== NULL) {
-        // Check if the selected school already has a principal, only if a school is selected
         $check_principal_sql = "SELECT id FROM users WHERE role = 'principal' AND school_id = ?";
         $stmt = $conn->prepare($check_principal_sql);
         $stmt->bind_param('i', $school_id);
@@ -36,9 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // If no errors, proceed with user creation
     if (!isset($error_message)) {
-        // Check if email is unique
         $email_check_sql = "SELECT * FROM users WHERE email = ?";
         $stmt = $conn->prepare($email_check_sql);
         $stmt->bind_param('s', $email);
@@ -48,26 +43,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result->num_rows > 0) {
             $error_message = "Email is already taken.";
         } else {
-            // Hash the password before saving it
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            // Insert user into the users table
             $insert_sql = "INSERT INTO users (name, email, password, role, school_id) 
                            VALUES (?, ?, ?, ?, ?)";
             $insert_stmt = $conn->prepare($insert_sql);
             $insert_stmt->bind_param('ssssi', $name, $email, $hashed_password, $role, $school_id);
 
             if ($insert_stmt->execute()) {
-                // Get the ID of the newly created user
                 $user_id = $insert_stmt->insert_id;
 
-                // If the new user is a principal and a school is assigned, update the school
                 if ($role === 'principal' && $school_id !== NULL) {
                     if (updateSchoolPrincipal($conn, $school_id, $user_id)) {
-                        // Successfully updated the school with the new principal
                         header("Location: user_management.php?message=User added and school principal updated successfully.");
                     } else {
-                        // Error updating the school
                         $error_message = "Error updating the school with the new principal.";
                     }
                 } else {

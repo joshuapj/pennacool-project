@@ -1,0 +1,29 @@
+# for starting the container
+docker compose up -d
+
+# for putting the container down
+docker compose down
+
+# for accessing the database from the command line as the root user
+docker exec -it mysql-container mysql -u root -p
+
+# copy the database to the mysql container
+docker cp "/Users/joshuapj/Documents/Personal/Job Applications/Pennacool/Demo Project Files/setup_sample_data.sql" mysql-container:/database.sql
+docker cp "./db/setup_sample_data.sql" mysql-container:/database.sql
+source /database.sql;
+
+Summary of Changes Made to SQL Setup:
+
+1. Changed the foreign key in the school table to use the id in the user table. this had to be done after
+   the user table was created.
+
+
+Some things I noted:
+   -  to create a school, you need a principal, but you can't just create a principal for a new school that doesnt
+      exist
+
+   -  i was about to change the school assosciated with a principal when creating a school, but then i realized
+      that just because one school has one principal, one user can be the principal of multiple schools.
+
+   -  this makes it kinda hard to create a new school. to make a new school, you'd first have to make a new user,
+      assign them as a teacher to an exisiting school

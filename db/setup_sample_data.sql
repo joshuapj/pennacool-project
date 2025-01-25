@@ -60,3 +60,7 @@ VALUES
     ('Charlotte Garcia', 'cgarcia@success.edu.tt', SHA2('studentpass', 256), 'student', 3),
     ('Harper Martinez', 'hmartinez@success.edu.tt', SHA2('studentpass', 256), 'student', 3),
     ('Benjamin Young', 'byoung@success.edu.tt', SHA2('studentpass', 256), 'student', 3);
+
+UPDATE schools SET principal_id = (SELECT id FROM users WHERE email = 'jdoe@brightfuture.edu.tt') WHERE id = 1;
+UPDATE schools SET principal_id = (SELECT id FROM users WHERE email = 'jsmith@harmony.edu.tt') WHERE id = 2;
+UPDATE schools SET principal_id = (SELECT id FROM users WHERE email = 'mbrown@success.edu.tt') WHERE id = 3;

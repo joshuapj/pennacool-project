@@ -8,9 +8,9 @@ if (!isset($_GET['id'])) {
 $id = intval($_GET['id']);
 $error_message = null; // To hold any error messages
 
-// Check if the user is a principal
-$check_principal_sql = "SELECT role, school_id FROM users WHERE id = ?";
-$stmt = $conn->prepare($check_principal_sql);
+// Check if the user exists and is a principal assigned to a school
+$check_user_sql = "SELECT role, school_id FROM users WHERE id = ?";
+$stmt = $conn->prepare($check_user_sql);
 $stmt->bind_param('i', $id);
 $stmt->execute();
 $result = $stmt->get_result();

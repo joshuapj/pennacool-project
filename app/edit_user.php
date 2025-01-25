@@ -20,15 +20,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role = $_POST['role'];
     $school_id = ($_POST['school_id'] === '') ? NULL : intval($_POST['school_id']);  // Set to NULL if "No School" is selected
 
-    if ($role === 'principal') {
-        $check_principal_sql = "SELECT id FROM users WHERE role = 'principal' AND school_id = ? AND id != ?";
-        $stmt = $conn->prepare($check_principal_sql);
-        $stmt->bind_param('ii', $school_id, $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    $email_check_sql = "SELECT id FROM users WHERE email = ? AND id != ?";
+    $stmt = $conn->prepare($email_check_sql);
+    $stmt->bind_param('si', $email, $id);
+    $stmt->execute();
+    $email_check_result = $stmt->get_result();
 
-        if ($result->num_rows > 0) {
-            $error_message = "The selected school already has a principal.";
+    if ($email_check_result->num_rows > 0) {
+        $error_message = "The email address is already in use by another user.";
+    } else {
+        if ($role === 'principal') {
+            $check_principal_sql = "SELECT id FROM users WHERE role = 'principal' AND school_id = ? AND id != ?";
+            $stmt = $conn->prepare($check_principal_sql);
+            $stmt->bind_param('ii', $school_id, $id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result->num_rows > 0) {
+                $error_message = "The selected school already has a principal.";
+            } else {
+                $success = updateUser($conn, $id, $name, $email, $role, $school_id);
+
+                if ($success) {
+                    header("Location: user_management.php?message=User updated successfully");
+                    exit;
+                } else {
+                    $error_message = "Error updating user: " . $conn->error;
+                }
+            }
         } else {
             $success = updateUser($conn, $id, $name, $email, $role, $school_id);
 
@@ -38,15 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error_message = "Error updating user: " . $conn->error;
             }
-        }
-    } else {
-        $success = updateUser($conn, $id, $name, $email, $role, $school_id);
-
-        if ($success) {
-            header("Location: user_management.php?message=User updated successfully");
-            exit;
-        } else {
-            $error_message = "Error updating user: " . $conn->error;
         }
     }
 }
